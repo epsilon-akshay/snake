@@ -15,9 +15,10 @@
             color: "green",
             headColor: "red"
         }
-
+        var intervalVar
+        var running
         var eaten = false
-
+        var score = 0
         var snakeBodyList = []
 
         document.onkeydown = function(event) {
@@ -33,7 +34,13 @@
             }
         }
 
-        document.onmousedown = function() {
+        canvas.onmousedown = function() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (running) {
+
+                clearInterval(intervalVar)
+                running = false
+            }
             startGame()
         }
         var xx = Math.floor(Math.random() * (canvas.width - 50))
@@ -50,13 +57,35 @@
                 ctx.drawImage(base_image, 0, 0, 550, 550, 0, 0, 1000, 1000);
             }
             ctx.save()
+
             ctx.fillStyle = 'red'
             ctx.font = "50px Georgia";
-
             ctx.fillText("CLICK ON CLOCK TO BEGIN THE GAME", 500, 500)
             ctx.restore()
         }
+        testCollision = function(rect1, rect2) {
+            return ((rect1.x <= rect2.x + 10) &&
+                (rect2.x <= rect1.x + 10) &&
+                (rect1.y <= rect2.y + 10) &&
+                (rect2.y <= rect1.y + 10));
+        }
 
+        var checkCollisionWithItself = function() {
+            for (var i = 1; i < snakeBodyList.length; i++) {
+                if (testCollision(snakeBodyList[0], snakeBodyList[i])) {
+                    clearInterval(intervalVar)
+                    ctx.save()
+                    ctx.fillStyle = 'black'
+                    ctx.fillRect(0, 0, 100000, 100000)
+                    ctx.fillStyle = 'red'
+                    ctx.font = "50px Georgia";
+                    lineitem = 'Game Over! Click to restart your score is ' + score
+                    ctx.fillText(lineitem, 500, 500);
+                    ctx.restore()
+                    return
+                }
+            }
+        }
 
         var startGame = function() {
             snakeBodyList = [{
@@ -73,8 +102,8 @@
             for (var i = 0; i < snakeBodyList.length; i++) {
                 drawSnakeBody(snakeBodyList[i], i)
             }
-
-            setInterval(Updateposition, 100)
+            running = true
+            intervalVar = setInterval(Updateposition, 100)
         }
         var drawFood = function(xx, yy) {
             ctx.save()
@@ -106,6 +135,7 @@
             increaseSnakeLength()
             moveSnakeLogic()
             checkIfFoodTouched()
+            checkCollisionWithItself()
         }
         var increaseSnakeLength = function() {
             if (eaten == true) {
@@ -127,6 +157,7 @@
                 xx = Math.floor(Math.random() * (canvas.width - 50))
                 yy = Math.floor(Math.random() * (canvas.height - 50))
                 eaten = true
+                score++
             }
         }
 
